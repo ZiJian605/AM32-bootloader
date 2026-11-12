@@ -126,11 +126,13 @@ static inline void bl_reset_to_bootloader(void)
 #define BL_RESET_TO_BOOTLOADER() bl_reset_to_bootloader()
 static inline void jump_to_application(void)
 {
-  const uint32_t *app = (const uint32_t *)M030_APP_START;
+  const uint32_t app_address = MCU_FLASH_START + FIRMWARE_RELATIVE_START;
+  const uint32_t flash_end = MCU_FLASH_START + BOARD_FLASH_SIZE * 1024UL;
+  const uint32_t *app = (const uint32_t *)app_address;
   const uint32_t sp = app[0];
   const uint32_t entry = app[1];
   if ((sp & 7UL) != 0 || sp < 0x20000000UL || sp > 0x20001000UL ||
-      (entry & 1UL) == 0 || entry < M030_APP_START || entry >= M030_FLASH_END) {
+      (entry & 1UL) == 0 || entry < app_address || entry >= flash_end) {
     return;
   }
 
@@ -142,7 +144,7 @@ static inline void jump_to_application(void)
   bl_timer_disable();
 
   RCC_Unlock();
-  RCC_SetVectorTableAddr(M030_APP_START >> RCC_SYSTEM_CR_VTOR_Pos);
+  RCC_SetVectorTableAddr(app_address >> RCC_SYSTEM_CR_VTOR_Pos);
   RCC_Lock();
   __DSB();
   __ISB();

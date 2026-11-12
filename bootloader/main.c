@@ -215,6 +215,15 @@ static void bl_led_update(void)
 #error "unsupported BOARD_FLASH_SIZE"
 #endif
 
+#elif defined(DPM)
+#if BOARD_FLASH_SIZE == 32
+#define EEPROM_START_ADD (MCU_FLASH_START+0x7c00)
+#define FLASH_SIZE_CODE 0x3f
+#define ADDRESS_SHIFT 0
+#else
+#error "unsupported BOARD_FLASH_SIZE for DPM"
+#endif
+
 #else
 #if BOARD_FLASH_SIZE == 32
 #define EEPROM_START_ADD (MCU_FLASH_START+0x7c00)

@@ -3,8 +3,9 @@
 
 bool save_flash_nolib(const uint8_t *data, uint32_t length, uint32_t address)
 {
-  if (address < MCU_FLASH_START || address >= M030_FLASH_END ||
-    length > M030_FLASH_END - address ||
+  const uint32_t flash_end = MCU_FLASH_START + BOARD_FLASH_SIZE * 1024UL;
+  if (address < MCU_FLASH_START || address >= flash_end ||
+    length > flash_end - address ||
     (length == 0 && address % DPM_PAGE_SIZE != 0)) {
     return false;
   }
