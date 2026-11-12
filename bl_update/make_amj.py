@@ -32,6 +32,7 @@ default_flash_sizes = {
     "G431" : 64,
     "V203" : 64,
     "A153" : 128,
+    "M030" : 32,
 }
 
 bname = os.path.basename(args.hex)
@@ -67,7 +68,7 @@ elif can:
 else:
     flash_size = "%uK" % default_flash_sizes[MCU]
 
-if not MCU in 'E230 F031 F051 F415 F415_128K F421 G071 G071_64K L431 L431_128K G431 V203 A153'.split():
+if not MCU in 'E230 F031 F051 F415 F415_128K F421 G071 G071_64K L431 L431_128K G431 V203 A153 M030'.split():
     print(f"Bad MCU {MCU}")
     sys.exit(1)
 

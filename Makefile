@@ -21,7 +21,7 @@ ROOT := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 include $(ROOT)/make/tools.mk
 
 # MCU builds, if with _xxK then adds build with given flash size
-MCU_BUILDS := E230 F031 F051 F415 F415_128K F421 G071 G071_64K L431 L431_128K G431 V203 L431_CAN F415_CAN G431_CAN A153 SITL_CAN
+MCU_BUILDS := E230 F031 F051 F415 F415_128K F421 G071 G071_64K L431 L431_128K G431 V203 L431_CAN F415_CAN G431_CAN A153 M030 SITL_CAN
 
 # we support bootloader comms on a list of possible pins
 BOOTLOADER_PINS = PB4 PA2 PA6 PA15 PA0 PB2
@@ -189,7 +189,7 @@ $(eval BLU_ELF_FILE := $(BIN_DIR)/$(call BOOTLOADER_UPDATE_BASENAME_VER,$(BUILD)
 $(eval BLU_HEX_FILE := $(BLU_ELF_FILE:.elf=.hex))
 $(eval BLU_DEP_FILE := $(BLU_ELF_FILE:.elf=.d))
 $(eval BLU_BIN_FILE := $(BLU_ELF_FILE:.elf=.bin))
-$(eval BLU_MAP_FILE := $(BLU_ELF_FILE:.elf=.bin))
+$(eval BLU_MAP_FILE := $(BLU_ELF_FILE:.elf=.map))
 $(eval BLU_AMJ_FILE := $(BLU_ELF_FILE:.elf=.amj))
 $(eval TARGET := $(call BOOTLOADER_BASENAME,$(BUILD),$(PIN)))
 $(eval BLU_TARGET := $(call BOOTLOADER_UPDATE_BASENAME,$(BUILD),$(PIN)))
@@ -215,7 +215,7 @@ $(ELF_FILE): $$(SRC_$(MCU)_BL) $$(SRC_BL) $$(SRC_DRONECAN)
 # debug.elf/svd/openocd.cfg are for on-chip debugging; skip them for the
 # native SITL target so obj/debug.elf never becomes a host binary that
 # arm-none-eabi-size (run over obj/*.elf in CI) cannot read
-$(if $(NATIVE_$(MCU)),,	$$(QUIET)$$(CP) -f $$@ $$(OBJ)$$(DSEP)debug.elf
+$(if $(or $(NATIVE_$(MCU)),$(NO_DEBUG_$(MCU))),,	$$(QUIET)$$(CP) -f $$@ $$(OBJ)$$(DSEP)debug.elf
 	$$(QUIET)$$(CP) -f $$(SVD_$(MCU)) $$(OBJ)/debug.svd
 	$$(QUIET)$$(CP) -f Mcu$(DSEP)$(call lc,$(MCU))$(DSEP)openocd.cfg $$(OBJ)$$(DSEP)openocd.cfg > $$(NUL))
 
@@ -228,7 +228,7 @@ $(BLU_ELF_FILE): $$(SRC_$(MCU)_BL) $$(SRC_BLU) $(H_FILE)
 	$$(QUIET)echo building bootloader updater for $(BUILD) with pin $(PIN)
 	$$(QUIET)$$(MKDIR) -p $(OBJ)
 	$$(QUIET)echo Compiling $(notdir $$@)
-	$$(QUIET)$(xCC) $$(CFLAGS_BLU) $$(LDFLAGS_BLU) -MMD -MP -MF $(DEP_FILE) -o $$(@) $$(SRC_$(MCU)_BL) $$(SRC_BLU) -I. -DBL_HEADER_FILE=$(H_FILE) -Wl,-Map=$(BLU_MAP_FILE)
+	$$(QUIET)$(xCC) $$(CFLAGS_BLU) $$(LDFLAGS_BLU) -MMD -MP -MF $(BLU_DEP_FILE) -o $$(@) $$(SRC_$(MCU)_BL) $$(SRC_BLU) -I. -DBL_HEADER_FILE=$(H_FILE) -Wl,-Map=$(BLU_MAP_FILE)
 
 # Generate bin and hex files
 $(HEX_FILE): $$(ELF_FILE)
