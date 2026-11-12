@@ -110,6 +110,20 @@ static inline bool bl_was_software_reset(void)
   return (RCC->RESET_SR & RCC_RESET_SR_SW_Msk) != 0;
 }
 
+/* M030 system reset preserves RCC_SYSTEM_CR 
+ * Restore the bootloader vectors before SYSRESETREQ fetches the reset vector. */
+static inline void bl_reset_to_bootloader(void)
+{
+  __disable_irq();
+  RCC_Unlock();
+  RCC_SetVectorTableAddr(MCU_FLASH_START >> RCC_SYSTEM_CR_VTOR_Pos);
+  RCC_Lock();
+  __DSB();
+  __ISB();
+  NVIC_SystemReset();
+}
+
+#define BL_RESET_TO_BOOTLOADER() bl_reset_to_bootloader()
 static inline void jump_to_application(void)
 {
   const uint32_t *app = (const uint32_t *)M030_APP_START;

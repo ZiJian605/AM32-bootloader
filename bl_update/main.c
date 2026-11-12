@@ -84,6 +84,11 @@ const struct {
 
 #include <blutil.h>
 
+/* Some MCUs retain their vector mapping across a software reset. */
+#ifndef BL_RESET_TO_BOOTLOADER
+#define BL_RESET_TO_BOOTLOADER() NVIC_SystemReset()
+#endif
+
 #if BL_TRANSITION
 /*
   the transition updater is flashed by a legacy 4k bootloader, which
@@ -224,8 +229,8 @@ int main(void)
     flash_bootloader();
   }
 
-  // and reset
-  NVIC_SystemReset();
+  // return to the bootloader
+  BL_RESET_TO_BOOTLOADER();
 
   return 0;
 }
